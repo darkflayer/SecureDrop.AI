@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
 import { CogIcon, KeyIcon, UserIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { API_URL } from '../../config';
+
 
 
 interface AdminProfile {
@@ -113,7 +114,8 @@ const AdminSettings: React.FC = () => {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/profile', {
+      
+      const response = await fetch(`${API_URL}/api/admin/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +177,8 @@ const AdminSettings: React.FC = () => {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/password', {
+      
+      const response = await fetch(`${API_URL}/api/admin/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

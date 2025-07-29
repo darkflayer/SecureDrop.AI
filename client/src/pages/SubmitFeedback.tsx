@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config';
 import FinalsLogo from '../components/FinalsLogo';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PhotoIcon } from '@heroicons/react/24/outline';
@@ -52,7 +53,8 @@ const SubmitFeedback: React.FC = () => {
         formDataToSend.append('media', formData.media);
       }
 
-      const response = await fetch('http://localhost:5000/api/complaint/submit', {
+      
+      const response = await fetch(`${API_URL}/api/complaint/submit`, {
         method: 'POST',
         body: formDataToSend
       });

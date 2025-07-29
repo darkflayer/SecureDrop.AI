@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FinalsLogo from '../../components/FinalsLogo';
+import { API_URL } from '../../config';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const ResetPassword: React.FC = () => {
@@ -49,7 +50,8 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/reset-password', {
+      
+      const response = await fetch(`${API_URL}/api/admin/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

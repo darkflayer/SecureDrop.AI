@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../../config';
 import FinalsLogo from '../../components/FinalsLogo';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -27,7 +28,8 @@ const AdminRegister: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/register', {
+      
+      const response = await fetch(`${API_URL}/api/admin/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

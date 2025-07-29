@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
@@ -80,7 +81,8 @@ const AdminAnalytics: React.FC = () => {
     const fetchComplaints = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/admin/complaints', {
+        
+        const response = await fetch(`${API_URL}/api/admin/complaints`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

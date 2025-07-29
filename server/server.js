@@ -10,17 +10,29 @@ const complaintRoutes = require("./routes/complaintRoutes");
 
 const app = express();
 const server = http.createServer(app);
+
+const allowedOrigins = [
+  'http://localhost:3000', // local dev
+  'https://securedrop-ai.onrender.com', // backend itself (optional)
+  'https://securedrop-ai-client.onrender.com', // deployed frontend (replace with your actual frontend Render URL)
+  // Add your custom domain here if you have one
+];
+
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

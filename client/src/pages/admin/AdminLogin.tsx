@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import FinalsLogo from '../../components/FinalsLogo';
 
@@ -28,7 +29,8 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/login', {
+      
+      const response = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +61,8 @@ const AdminLogin: React.FC = () => {
     setResetMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/forgot-password', {
+      
+      const response = await fetch(`${API_URL}/api/admin/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

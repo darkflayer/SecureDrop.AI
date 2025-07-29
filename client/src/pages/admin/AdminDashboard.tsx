@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { 
@@ -61,7 +62,8 @@ const AdminDashboard: React.FC = () => {
     // Fetch complaints
     const fetchComplaints = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/complaints', {
+        
+        const response = await fetch(`${API_URL}/api/admin/complaints`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -84,7 +86,8 @@ const AdminDashboard: React.FC = () => {
     fetchComplaints();
 
     // Connect to Socket.IO for real-time updates
-    const newSocket = io('http://localhost:5000');
+    
+    const newSocket = io(API_URL);
     
     // Join admin room (you'll need to get orgId from the admin data)
     newSocket.emit('join-admin', 'demo'); // Replace with actual orgId

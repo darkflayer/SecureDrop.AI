@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
 
 const AITest: React.FC = () => {
@@ -16,7 +17,8 @@ const AITest: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/test-ai', {
+      
+      const response = await fetch(`${API_URL}/api/admin/test-ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
