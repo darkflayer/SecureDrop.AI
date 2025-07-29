@@ -10,12 +10,9 @@ const complaintRoutes = require("./routes/complaintRoutes");
 
 const app = express();
 const server = http.createServer(app);
-
 const allowedOrigins = [
-  'http://localhost:3000', // local dev
-  'https://securedrop-ai.onrender.com', // backend itself (optional)
-  'https://securedrop-ai-client.onrender.com', // deployed frontend (replace with your actual frontend Render URL)
-  // Add your custom domain here if you have one
+  process.env.FRONTEND_URL, // Set this in your .env on Render
+  "http://localhost:3000"
 ];
 
 const io = socketIo(server, {

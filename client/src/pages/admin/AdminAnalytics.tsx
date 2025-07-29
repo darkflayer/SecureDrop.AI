@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../../config';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -81,7 +81,6 @@ const AdminAnalytics: React.FC = () => {
     const fetchComplaints = async () => {
       try {
         setLoading(true);
-        
         const response = await fetch(`${API_URL}/api/admin/complaints`, {
           headers: {
             'Authorization': `Bearer ${token}`

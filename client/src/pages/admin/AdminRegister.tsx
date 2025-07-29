@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { API_URL } from '../../config';
 import FinalsLogo from '../../components/FinalsLogo';
+import { API_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 
 const AdminRegister: React.FC = () => {
@@ -28,7 +28,6 @@ const AdminRegister: React.FC = () => {
     setError('');
 
     try {
-      
       const response = await fetch(`${API_URL}/api/admin/register`, {
         method: 'POST',
         headers: {

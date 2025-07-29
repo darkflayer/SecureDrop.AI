@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { API_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import FinalsLogo from '../../components/FinalsLogo';
+import { API_URL } from '../../config';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +29,6 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      
       const response = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: {
@@ -61,7 +60,6 @@ const AdminLogin: React.FC = () => {
     setResetMessage('');
 
     try {
-      
       const response = await fetch(`${API_URL}/api/admin/forgot-password`, {
         method: 'POST',
         headers: {

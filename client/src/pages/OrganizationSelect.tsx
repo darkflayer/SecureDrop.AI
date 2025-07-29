@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { API_URL } from '../config';
 import FinalsLogo from '../components/FinalsLogo';
+import { API_URL } from '../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { MagnifyingGlassIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
@@ -26,7 +26,6 @@ const OrganizationSelect: React.FC = () => {
     }
     setLoading(true);
     try {
-      
       const res = await fetch(`${API_URL}/api/complaint/organizations?search=${encodeURIComponent(value)}`);
       if (res.ok) {
         const data = await res.json();

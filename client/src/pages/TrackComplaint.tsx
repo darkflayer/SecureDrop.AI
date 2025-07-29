@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../config';
 import FinalsLogo from '../components/FinalsLogo';
+import { API_URL } from '../config';
 import { useParams } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 
@@ -57,7 +57,6 @@ const TrackComplaint: React.FC = () => {
     // Fetch complaint details
     const fetchComplaint = async () => {
       try {
-        
         const response = await fetch(`${API_URL}/api/complaint/track/${complaintId}`);
         if (response.ok) {
           const data = await response.json();
@@ -75,7 +74,6 @@ const TrackComplaint: React.FC = () => {
     fetchComplaint();
 
     // Connect to Socket.IO for real-time updates
-    
     const newSocket = io(API_URL);
     setSocket(newSocket);
     
@@ -124,7 +122,6 @@ const TrackComplaint: React.FC = () => {
 
     setSending(true);
     try {
-      
       const response = await fetch(`${API_URL}/api/complaint/${complaintId}/message`, {
         method: 'POST',
         headers: {

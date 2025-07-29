@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../../config';
 import FinalsLogo from '../../components/FinalsLogo';
+import { API_URL } from '../../config';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { 
@@ -64,7 +64,6 @@ const ReportDetails: React.FC = () => {
 
     const fetchComplaint = async () => {
       try {
-        
         const response = await fetch(`${API_URL}/api/admin/complaints/${complaintId}/insights`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -89,7 +88,6 @@ const ReportDetails: React.FC = () => {
     fetchComplaint();
 
     // Setup Socket.IO for real-time updates
-    
     const newSocket = io(API_URL);
     setSocket(newSocket);
     
@@ -152,7 +150,6 @@ const ReportDetails: React.FC = () => {
     if (!token || !complaint) return;
 
     try {
-      
       const response = await fetch(`${API_URL}/api/admin/complaints/${complaintId}/status`, {
         method: 'PUT',
         headers: {
@@ -176,7 +173,6 @@ const ReportDetails: React.FC = () => {
 
     setSending(true);
     try {
-      
       const response = await fetch(`${API_URL}/api/admin/complaints/${complaintId}/message`, {
         method: 'POST',
         headers: {
