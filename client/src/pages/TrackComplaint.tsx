@@ -45,6 +45,7 @@ interface Complaint {
 }
 
 const TrackComplaint: React.FC = () => {
+  const messagesContainerRef = React.useRef<HTMLDivElement | null>(null);
   const { complaintId } = useParams<{ complaintId: string }>();
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,34 +81,64 @@ const TrackComplaint: React.FC = () => {
     // Join complaint room for real-time updates
     newSocket.emit('join-complaint', complaintId);
     
+    // Listen for real-time status updates from admin
+    newSocket.on('status-updated', (data) => {
+      if (data.complaintId === complaintId) {
+        setComplaint(prev => prev ? { ...prev, status: data.status, updatedAt: data.updatedAt } : null);
+        setTimeout(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+          }
+        }, 100);
+      }
+    });
+
     // Listen for admin replies (legacy support)
-    newSocket.on('admin-replied', (data) => {
-      setComplaint(prev => prev ? {
-        ...prev,
-        adminReply: data.reply,
-        status: data.status,
-        updatedAt: data.updatedAt
-      } : null);
+    newSocket.on('admin-replied', (data: any) => {
+      setComplaint(prev => {
+        if (!prev) return prev;
+        if (data.complaintId !== prev.complaintId) return prev;
+        return {
+          ...prev,
+          adminReply: data.reply,
+          status: data.status,
+          updatedAt: data.updatedAt
+        };
+      });
     });
 
     // Listen for admin messages in real-time
-    newSocket.on('admin-message', (data) => {
-      if (data.complaintId === complaintId) {
-        setComplaint(prev => prev ? {
+    newSocket.on('admin-message', (data: any) => {
+      setComplaint(prev => {
+        if (!prev) return prev;
+        if (data.complaintId !== prev.complaintId) return prev;
+        return {
           ...prev,
           messages: [...prev.messages, data.message]
-        } : null);
-      }
+        };
+      });
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 100);
     });
 
     // Listen for user messages from other sessions (if any)
-    newSocket.on('user-message', (data) => {
-      if (data.complaintId === complaintId) {
-        setComplaint(prev => prev ? {
+    newSocket.on('user-message', (data: any) => {
+      setComplaint(prev => {
+        if (!prev) return prev;
+        if (data.complaintId !== prev.complaintId) return prev;
+        return {
           ...prev,
           messages: [...prev.messages, data.message]
-        } : null);
-      }
+        };
+      });
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 100);
     });
 
     return () => {
@@ -117,6 +148,12 @@ const TrackComplaint: React.FC = () => {
   }, [complaintId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
+    // After sending, scroll to bottom
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    }, 100);
     e.preventDefault();
     if (!newMessage.trim() || !complaint) return;
 
@@ -323,8 +360,7 @@ const TrackComplaint: React.FC = () => {
         {/* Messages Thread */}
         <div className="bg-white rounded-lg shadow-sm p-2 sm:p-4 md:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Conversation</h2>
-          
-          <div className="space-y-4 mb-6 max-h-60 sm:max-h-96 overflow-y-auto" id="messages-container">
+          <div className="space-y-4 mb-6 max-h-60 sm:max-h-96 overflow-y-auto" id="messages-container" ref={messagesContainerRef}>
             {complaint.messages.map((message, index) => (
               <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {/* Avatar for mobile */}

@@ -101,42 +101,39 @@ const ReportDetails: React.FC = () => {
     
     // Listen for user messages
     newSocket.on('user-message', (data) => {
-      if (data.complaintId === complaintId) {
-        setComplaint(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            messages: [...prev.messages, data.message]
-          };
-        });
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          const container = document.getElementById('messages-container');
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
-        }, 100);
-      }
+      setComplaint(prev => {
+        if (!prev) return prev;
+        if (data.complaintId !== prev._id) return prev;
+        // Always create new array reference
+        return {
+          ...prev,
+          messages: [...prev.messages, data.message]
+        };
+      });
+      setTimeout(() => {
+        const container = document.getElementById('messages-container');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 100);
     });
 
     // Listen for admin messages (from other admin sessions)
     newSocket.on('admin-message', (data) => {
-      if (data.complaintId === complaintId) {
-        setComplaint(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            messages: [...prev.messages, data.message]
-          };
-        });
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          const container = document.getElementById('messages-container');
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
-        }, 100);
-      }
+      setComplaint(prev => {
+        if (!prev) return prev;
+        if (data.complaintId !== prev._id) return prev;
+        return {
+          ...prev,
+          messages: [...prev.messages, data.message]
+        };
+      });
+      setTimeout(() => {
+        const container = document.getElementById('messages-container');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 100);
     });
 
     return () => {

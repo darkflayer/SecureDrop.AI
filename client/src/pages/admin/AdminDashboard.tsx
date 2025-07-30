@@ -277,7 +277,13 @@ const AdminDashboard: React.FC = () => {
                     </td>
                     <td className="px-2 md:px-6 py-4 whitespace-normal md:whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {complaint.category}
+                        {complaint.category.length > 20 ? (
+  <span title={complaint.category}>
+    {complaint.category.substring(0, 20)}&hellip;
+  </span>
+) : (
+  complaint.category
+)}
                       </span>
                     </td>
                     <td className="px-2 md:px-6 py-4 whitespace-normal md:whitespace-nowrap">
@@ -290,7 +296,32 @@ const AdminDashboard: React.FC = () => {
                     </td>
                     <td className="px-2 md:px-6 py-4 whitespace-normal md:whitespace-nowrap font-medium">
                       <Link to={`/admin/report/${complaint._id}`} className="text-blue-600 hover:text-blue-900 mr-4">Reply</Link>
-                      <button className="text-green-600 hover:text-green-900">Mark as Resolved</button>
+                      <button
+  className={`text-green-600 hover:text-green-900 ${complaint.status === 'Resolved' ? 'opacity-50 cursor-not-allowed' : ''}`}
+  disabled={complaint.status === 'Resolved'}
+  onClick={async () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/admin/complaints/${complaint._id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'Resolved' }),
+      });
+      if (response.ok) {
+        // Optimistically update UI
+        setComplaints(prev => prev.map(c => c._id === complaint._id ? { ...c, status: 'Resolved' } : c));
+      }
+    } catch (err) {
+      alert('Failed to mark as resolved');
+    }
+  }}
+>
+  {complaint.status === 'Resolved' ? 'Resolved' : 'Mark as Resolved'}
+</button>
                     </td>
                   </tr>
                 ))}
