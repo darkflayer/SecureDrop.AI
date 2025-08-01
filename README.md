@@ -8,6 +8,9 @@ Real-time, AI-powered anonymous complaint and feedback platform for organization
 SecureDrop.AI is a modern web application that empowers users to submit complaints or feedback to organizations anonymously and securely. With advanced AI-driven categorization and analytics, 
 organizations can understand, prioritize, and act on feedback efficiently—while users remain protected and untraceable.
 
+
+Live Demo:-https://securedropai.vercel.app/
+
 🚀 Key Features
 Anonymous Complaint Submission: Users can submit complaints or feedback without revealing their identity.
 AI-Powered Categorization: Complaints are automatically categorized and analyzed for severity, urgency, sentiment, and risk using advanced AI models.
