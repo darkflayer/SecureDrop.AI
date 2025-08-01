@@ -94,8 +94,8 @@ Setup
 Clone the repo:
 bash
 
-git clone https://github.com/yourusername/secure-drop.git
-cd secure-drop
+git clone https://github.com/darkflayer/SecureDrop.AI.git
+cd SecureDrop.AI
 Configure Environment Variables:
 Copy .env.example to 
 .env
@@ -118,6 +118,25 @@ cd client && npm start
 Access the App:
 User Portal: http://localhost:3000
 Admin Portal: http://localhost:3000/admin/login
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions of all kinds! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to set up the project, code standards, and how to submit issues or pull requests.
+
+If you're new, look for issues labeled `good first issue` or `help wanted`.
+
+## 🌐 Community & Conduct
+
+We are committed to fostering a welcoming and respectful community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
+
+## 📬 Contact
+
+For questions or support, open an issue or email: rautanhemu@gmail.com
+
+---
+
 🔒 Security & Privacy
 All complaints are stored without user-identifying information.
 JWT-based authentication for admin routes.
