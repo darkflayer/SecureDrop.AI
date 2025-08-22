@@ -189,8 +189,8 @@ const LandingPage: React.FC = () => {
           {/* Professional Stats Section */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mt-12 lg:mt-16 animate-fade-in">
             {[
-              { value: '10K+', label: 'Secure Submissions' },
-              { value: '500+', label: 'Organizations' },
+              { value: '100+', label: 'Secure Submissions' },
+              { value: '10+', label: 'Organizations' },
               { value: '98%', label: 'Satisfaction Rate' },
               { value: '24/7', label: 'Support Available' }
             ].map((stat, index) => (
