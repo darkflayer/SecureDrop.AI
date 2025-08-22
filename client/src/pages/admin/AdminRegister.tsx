@@ -22,28 +22,44 @@ const AdminRegister: React.FC = () => {
     });
   };
 
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  let resendInterval: NodeJS.Timeout;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+    setOtpError('');
     try {
-      const response = await fetch(`${API_URL}/api/admin/register`, {
+      const response = await fetch(`${API_URL}/api/admin/register/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
-
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminName', data.admin.name);
-        navigate('/admin/dashboard');
+        setOtpSent(true);
+        setResendCooldown(20);
+        resendInterval = setInterval(() => {
+          setResendCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(resendInterval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
       } else {
-        const errorData = await response.json();
-        setError(errorData.msg || 'Registration failed');
+        let errorMsg = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.msg || errorMsg;
+        } catch (e) {}
+        setError(errorMsg);
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -51,6 +67,73 @@ const AdminRegister: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setOtpError('');
+    try {
+      const response = await fetch(`${API_URL}/api/admin/register/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email, otp }),
+      });
+      if (response.ok) {
+        navigate('/admin/login');
+      } else {
+        let errorMsg = 'OTP verification failed';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.msg || errorMsg;
+        } catch (e) {}
+        setOtpError(errorMsg);
+      }
+    } catch (err) {
+      setOtpError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpError('');
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/register/resend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
+      if (response.ok) {
+        setResendCooldown(20);
+        resendInterval = setInterval(() => {
+          setResendCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(resendInterval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        let errorMsg = 'Failed to resend OTP';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.msg || errorMsg;
+        } catch (e) {}
+        setOtpError(errorMsg);
+      }
+    } catch (err) {
+      setOtpError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -69,119 +152,169 @@ const AdminRegister: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+          {!otpSent ? (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <div className="mt-1">
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter your full name"
-                />
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter your full name"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter your email"
-                />
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email address
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter your email"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Create a password"
-                />
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Create a password"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700">
-                Organization Name
-              </label>
-              <div className="mt-1">
-                <input
-                  id="organizationName"
-                  name="organizationName"
-                  type="text"
-                  required
-                  value={formData.organizationName}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter organization name"
-                />
+              <div>
+                <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700">
+                  Organization Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="organizationName"
+                    name="organizationName"
+                    type="text"
+                    required
+                    value={formData.organizationName}
+                    onChange={handleInputChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter organization name"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="orgCode" className="block text-sm font-medium text-gray-700">
-                Organization Code
-              </label>
-              <div className="mt-1">
-                <input
-                  id="orgCode"
-                  name="orgCode"
-                  type="text"
-                  required
-                  value={formData.orgCode}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter unique organization code"
-                />
+              <div>
+                <label htmlFor="orgCode" className="block text-sm font-medium text-gray-700">
+                  Organization Code
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="orgCode"
+                    name="orgCode"
+                    type="text"
+                    required
+                    value={formData.orgCode}
+                    onChange={handleInputChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter unique organization code"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  This code will be used in the submission URL: /submit/{formData.orgCode || 'yourcode'}
+                </p>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                This code will be used in the submission URL: /submit/{formData.orgCode || 'yourcode'}
-              </p>
-            </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Creating account...' : 'Create account'}
-              </button>
-            </div>
-          </form>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Creating account...' : 'Create account'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form className="space-y-6" onSubmit={handleVerifyOtp}>
+              <div className="mb-4 text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded">
+                OTP sent to {formData.email}. Please check your email.
+              </div>
+              {otpError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {otpError}
+                </div>
+              )}
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+                  Enter OTP
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    required
+                    value={otp}
+                    onChange={e => setOtp(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter the OTP"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Verifying...' : 'Verify OTP'}
+                </button>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || loading}
+                  onClick={handleResendOtp}
+                  className="text-sm text-blue-600 hover:text-blue-500 disabled:opacity-50"
+                >
+                  {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : 'Resend OTP'}
+                </button>
+              </div>
+            </form>
+          )}
+
 
           <div className="mt-6">
             <div className="relative">

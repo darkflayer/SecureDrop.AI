@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { 
-  register, 
+  startRegistration,
+  verifyRegistration,
+  resendOtp,
   login, 
   forgotPassword,
   resetPassword,
@@ -17,7 +19,10 @@ const {
 } = require("../controllers/adminController");
 const auth = require("../middlewares/auth");
 
-router.post("/register", register);
+// Authentication routes
+router.post("/register/start", startRegistration);
+router.post("/register/verify", verifyRegistration);
+router.post("/register/resend", resendOtp);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);

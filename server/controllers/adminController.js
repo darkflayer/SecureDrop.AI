@@ -4,7 +4,7 @@ const Admin = require("../models/Admin");
 const Organization = require("../models/Organization");
 const Complaint = require("../models/Complaint");
 const { generateSmartReplies, analyzeComplaintTrends, analyzeComplaint } = require("../utils/aiAnalyzer");
-const { sendPasswordResetEmail } = require("../utils/emailService");
+const { sendPasswordResetEmail, sendOtpEmail } = require("../utils/emailService");
 
 // Organization management
 exports.updateOrganization = async (req, res) => {
@@ -113,7 +113,20 @@ exports.register = async (req, res) => {
       organization: newOrg._id
     });
 
-    res.status(201).json({ msg: "Admin registered successfully" });
+    // Generate JWT token for the new admin (same as in login)
+    const token = jwt.sign({ adminId: newAdmin._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(201).json({
+      token,
+      admin: {
+        name: newAdmin.name,
+        email: newAdmin.email,
+        organization: {
+          name: newOrg.name,
+          orgCode: newOrg.orgCode
+        }
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server error" });
@@ -438,5 +451,120 @@ exports.testAIAnalysis = async (req, res) => {
   } catch (err) {
     console.error("Test AI Error:", err);
     res.status(500).json({ msg: "AI test failed", error: err.message });
+  }
+};
+
+// @desc    Start admin registration with OTP
+// @route   POST /api/admin/register/start
+// @access  Public
+exports.startRegistration = async (req, res) => {
+  const { name, email, password, organizationName, orgCode } = req.body;
+  if (!name || !email || !password || !organizationName || !orgCode) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
+  
+  try {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const now = Date.now();
+    
+    // Store in memory (in production, consider using Redis)
+    req.app.locals.pendingRegistrations = req.app.locals.pendingRegistrations || {};
+    req.app.locals.pendingRegistrations[email] = {
+      data: { name, email, password, organizationName, orgCode },
+      otp,
+      otpSentAt: now,
+      attempts: 0
+    };
+    
+    // Send OTP email
+    await sendOtpEmail(email, otp, name);
+    
+    res.json({ msg: "OTP sent to email" });
+  } catch (err) {
+    console.error('OTP email send error:', err);
+    res.status(500).json({ msg: "Failed to send OTP", error: err.message });
+  }
+};
+
+// @desc    Verify OTP and complete registration
+// @route   POST /api/admin/register/verify
+// @access  Public
+exports.verifyRegistration = async (req, res) => {
+  const { email, otp } = req.body;
+  const pending = req.app.locals.pendingRegistrations?.[email];
+  
+  if (!pending) {
+    return res.status(400).json({ msg: "No registration found for this email" });
+  }
+  
+  if (pending.otp !== otp) {
+    pending.attempts += 1;
+    return res.status(400).json({ msg: "Invalid OTP" });
+  }
+  
+  try {
+    const { name, password, organizationName, orgCode } = pending.data;
+    
+    // Check if org code already exists
+    const orgExists = await Organization.findOne({ orgCode });
+    if (orgExists) {
+      return res.status(400).json({ msg: "Organization code already in use" });
+    }
+    
+    // Create organization
+    const newOrg = await Organization.create({ 
+      name: organizationName, 
+      orgCode 
+    });
+    
+    // Create admin user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    await Admin.create({ 
+      name, 
+      email, 
+      password: hashedPassword, 
+      organization: newOrg._id 
+    });
+    
+    // Clean up
+    delete req.app.locals.pendingRegistrations[email];
+    
+    res.json({ msg: "Registration successful. Please log in." });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ msg: "Server error during registration" });
+  }
+};
+
+// @desc    Resend OTP for registration
+// @route   POST /api/admin/register/resend
+// @access  Public
+exports.resendOtp = async (req, res) => {
+  const { email } = req.body;
+  const pending = req.app.locals.pendingRegistrations?.[email];
+  
+  if (!pending) {
+    return res.status(400).json({ msg: "No registration found for this email" });
+  }
+  
+  const now = Date.now();
+  if (now - pending.otpSentAt < 20000) {
+    return res.status(429).json({ msg: "Please wait before resending OTP" });
+  }
+  
+  // Generate new OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  pending.otp = otp;
+  pending.otpSentAt = now;
+  
+  try {
+    await sendOtpEmail(email, otp, pending.data.name);
+    res.json({ msg: "OTP resent to email" });
+  } catch (err) {
+    console.error('Resend OTP error:', err);
+    res.status(500).json({ msg: "Failed to resend OTP" });
   }
 };

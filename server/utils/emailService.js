@@ -16,7 +16,7 @@ const sendPasswordResetEmail = async (email, resetToken, adminName) => {
   try {
     const transporter = createTransporter();
     
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/admin/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/reset-password?token=${resetToken}`;
     
     const mailOptions = {
       from: {
@@ -111,7 +111,40 @@ const testEmailConfig = async () => {
   }
 };
 
+// Send OTP email for registration
+const sendOtpEmail = async (email, otp, adminName) => {
+  try {
+    const transporter = createTransporter();
+    const mailOptions = {
+      from: {
+        name: 'SecureDrop.AI',
+        address: process.env.EMAIL_USER
+      },
+      to: email,
+      subject: 'Your SecureDrop.AI Registration OTP',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin:0 auto; padding: 20px;">
+          <h2 style="color: #333;">SecureDrop.AI Registration</h2>
+          <p>Hello ${adminName || 'Admin'},</p>
+          <p>Your OTP for SecureDrop.AI registration is:</p>
+          <div style="font-size: 2em; font-weight: bold; color: #007bff; margin: 20px 0;">${otp}</div>
+          <p>This OTP is valid for a few minutes. Please enter it to complete your registration.</p>
+          <p>If you did not request this, please ignore this email.</p>
+          <p style="margin-top: 30px; color: #888; font-size: 12px;">- The SecureDrop.AI Team</p>
+        </div>
+      `
+    };
+    const result = await transporter.sendMail(mailOptions);
+    console.log('OTP email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    console.error('Error sending OTP email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
-  testEmailConfig
+  testEmailConfig,
+  sendOtpEmail
 };
