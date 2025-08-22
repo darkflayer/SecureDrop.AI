@@ -96,6 +96,9 @@ exports.addUserMessage = async (req, res) => {
     const { text, mediaUrl, mediaType } = req.body;
     if (!text) return res.status(400).json({ msg: "Message text is required" });
 
+    console.log(`📨 User sending message to complaint: ${complaintId}`);
+    console.log(`📝 Message content: ${text.substring(0, 100)}...`);
+
     const complaint = await Complaint.findById(complaintId);
     if (!complaint) return res.status(404).json({ msg: "Complaint not found" });
 
@@ -109,13 +112,29 @@ exports.addUserMessage = async (req, res) => {
     complaint.messages.push(message);
     await complaint.save();
 
+    console.log(`✅ Message saved to database for complaint: ${complaintId}`);
+
     // Emit real-time update to admin
     const io = req.app.get('io');
     if (io) {
+      console.log(`📡 Emitting user-message event to admin room: admin-${complaint.organization}`);
+      console.log(`📡 Emitting user-message event to complaint room: complaint-${complaintId}`);
+      
+      // Emit to admin room
       io.to(`admin-${complaint.organization}`).emit('user-message', {
         complaintId,
         message
       });
+      
+      // Also emit to specific complaint room
+      io.to(`complaint-${complaintId}`).emit('user-message', {
+        complaintId,
+        message
+      });
+      
+      console.log(`✅ Real-time events emitted successfully`);
+    } else {
+      console.error(`❌ Socket.IO not available for complaint: ${complaintId}`);
     }
 
     res.json({

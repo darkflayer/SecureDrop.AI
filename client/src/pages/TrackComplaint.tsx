@@ -75,14 +75,43 @@ const TrackComplaint: React.FC = () => {
     fetchComplaint();
 
     // Connect to Socket.IO for real-time updates
-    const newSocket = io(API_URL);
+    const newSocket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      autoConnect: true
+    });
     setSocket(newSocket);
     
-    // Join complaint room for real-time updates
-    newSocket.emit('join-complaint', complaintId);
+    // Wait for connection before joining rooms
+    newSocket.on('connect', () => {
+      console.log('🔌 Connected to Socket.IO server');
+      
+      // Join complaint room for real-time updates
+      newSocket.emit('join-complaint', complaintId);
+    });
+    
+    // Handle connection errors
+    newSocket.on('connect_error', (error) => {
+      console.error('🔌 Socket.IO connection error:', error);
+    });
+    
+    // Handle successful room joins
+    newSocket.on('complaint-joined', (data) => {
+      if (data.success) {
+        console.log('✅ Joined complaint room:', data.room);
+      } else {
+        console.error('❌ Failed to join complaint room:', data.error);
+      }
+    });
     
     // Listen for real-time status updates from admin
     newSocket.on('status-updated', (data) => {
+      console.log('📊 Status updated:', data);
       if (data.complaintId === complaintId) {
         setComplaint(prev => prev ? { ...prev, status: data.status, updatedAt: data.updatedAt } : null);
         setTimeout(() => {
@@ -95,6 +124,7 @@ const TrackComplaint: React.FC = () => {
 
     // Listen for admin replies (legacy support)
     newSocket.on('admin-replied', (data: any) => {
+      console.log('📨 Admin replied:', data);
       setComplaint(prev => {
         if (!prev) return prev;
         if (data.complaintId !== prev.complaintId) return prev;
@@ -109,6 +139,7 @@ const TrackComplaint: React.FC = () => {
 
     // Listen for admin messages in real-time
     newSocket.on('admin-message', (data: any) => {
+      console.log('📨 Admin message received:', data);
       setComplaint(prev => {
         if (!prev) return prev;
         if (data.complaintId !== prev.complaintId) return prev;
@@ -126,6 +157,7 @@ const TrackComplaint: React.FC = () => {
 
     // Listen for user messages from other sessions (if any)
     newSocket.on('user-message', (data: any) => {
+      console.log('📨 User message received:', data);
       setComplaint(prev => {
         if (!prev) return prev;
         if (data.complaintId !== prev.complaintId) return prev;
@@ -141,7 +173,27 @@ const TrackComplaint: React.FC = () => {
       }, 100);
     });
 
+    // Handle reconnection
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('✅ Reconnected to Socket.IO server after', attemptNumber, 'attempts');
+      // Rejoin complaint room after reconnection
+      newSocket.emit('join-complaint', complaintId);
+    });
+
+    // Handle disconnection
+    newSocket.on('disconnect', (reason) => {
+      console.log('🔌 Disconnected from Socket.IO server:', reason);
+    });
+
+    // Test connection health
+    const pingInterval = setInterval(() => {
+      if (newSocket.connected) {
+        newSocket.emit('ping');
+      }
+    }, 30000); // Ping every 30 seconds
+
     return () => {
+      clearInterval(pingInterval);
       newSocket.close();
       setSocket(null);
     };

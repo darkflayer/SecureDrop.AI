@@ -302,6 +302,10 @@ exports.addAdminMessage = async (req, res) => {
     const admin = await Admin.findById(req.admin).populate("organization");
     if (!admin) return res.status(404).json({ msg: "Admin not found" });
 
+    console.log(`📨 Admin sending message to complaint: ${complaintId}`);
+    console.log(`👨‍💼 Admin: ${admin.name} (${admin.email})`);
+    console.log(`📝 Message content: ${text.substring(0, 100)}...`);
+
     const complaint = await Complaint.findOne({ _id: complaintId, organization: admin.organization._id });
     if (!complaint) return res.status(404).json({ msg: "Complaint not found" });
 
@@ -315,13 +319,21 @@ exports.addAdminMessage = async (req, res) => {
     complaint.messages.push(message);
     await complaint.save();
 
+    console.log(`✅ Admin message saved to database for complaint: ${complaintId}`);
+
     // Emit real-time update to user
     const io = req.app.get('io');
     if (io) {
+      console.log(`📡 Emitting admin-message event to complaint room: complaint-${complaintId}`);
+      
       io.to(`complaint-${complaintId}`).emit('admin-message', {
         complaintId,
         message
       });
+      
+      console.log(`✅ Real-time admin message event emitted successfully`);
+    } else {
+      console.error(`❌ Socket.IO not available for admin message to complaint: ${complaintId}`);
     }
 
     res.json({

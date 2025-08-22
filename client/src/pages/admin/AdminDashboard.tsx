@@ -85,16 +85,48 @@ const AdminDashboard: React.FC = () => {
     fetchComplaints();
 
     // Connect to Socket.IO for real-time updates
-    const newSocket = io(API_URL);
+    const newSocket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      autoConnect: true
+    });
     
-    // Join admin room (you'll need to get orgId from the admin data)
-    newSocket.emit('join-admin', 'demo'); // Replace with actual orgId
+    // Wait for connection before joining rooms
+    newSocket.on('connect', () => {
+      console.log('🔌 Connected to Socket.IO server');
+      
+      // Join admin room (you'll need to get orgId from the admin data)
+      const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+      const orgId = adminData?.organization?._id || 'demo';
+      newSocket.emit('join-admin', orgId);
+    });
+    
+    // Handle connection errors
+    newSocket.on('connect_error', (error) => {
+      console.error('🔌 Socket.IO connection error:', error);
+    });
+    
+    // Handle successful room joins
+    newSocket.on('admin-joined', (data) => {
+      if (data.success) {
+        console.log('✅ Admin joined room:', data.room);
+      } else {
+        console.error('❌ Failed to join admin room:', data.error);
+      }
+    });
     
     newSocket.on('new-complaint', (data) => {
+      console.log('📨 New complaint received:', data);
       setComplaints(prev => [data, ...prev]);
     });
 
     newSocket.on('user-message', (data) => {
+      console.log('📨 User message received:', data);
       setComplaints(prev => prev.map(complaint => 
         complaint._id === data.complaintId 
           ? { ...complaint, status: 'In Progress' }
@@ -102,9 +134,29 @@ const AdminDashboard: React.FC = () => {
       ));
     });
 
-    // Socket is set but not used in this component
+    // Handle reconnection
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('✅ Reconnected to Socket.IO server after', attemptNumber, 'attempts');
+      // Rejoin admin room after reconnection
+      const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+      const orgId = adminData?.organization?._id || 'demo';
+      newSocket.emit('join-admin', orgId);
+    });
+
+    // Handle disconnection
+    newSocket.on('disconnect', (reason) => {
+      console.log('🔌 Disconnected from Socket.IO server:', reason);
+    });
+
+    // Test connection health
+    const pingInterval = setInterval(() => {
+      if (newSocket.connected) {
+        newSocket.emit('ping');
+      }
+    }, 30000); // Ping every 30 seconds
 
     return () => {
+      clearInterval(pingInterval);
       newSocket.close();
     };
   }, [navigate]);
@@ -223,6 +275,7 @@ const AdminDashboard: React.FC = () => {
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              aria-label="Filter by category"
             >
               <option value="">Category</option>
               <option value="Security">Security</option>
@@ -235,6 +288,7 @@ const AdminDashboard: React.FC = () => {
               value={urgencyFilter}
               onChange={(e) => setUrgencyFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              aria-label="Filter by urgency"
             >
               <option value="">Urgency</option>
               <option value="Immediate">Immediate</option>
@@ -245,6 +299,7 @@ const AdminDashboard: React.FC = () => {
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              aria-label="Filter by date"
             >
               <option value="">Date</option>
               <option value="today">Today</option>

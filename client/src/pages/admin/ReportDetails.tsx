@@ -88,19 +88,58 @@ const ReportDetails: React.FC = () => {
     fetchComplaint();
 
     // Setup Socket.IO for real-time updates
-    const newSocket = io(API_URL);
+    const newSocket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      autoConnect: true
+    });
     setSocket(newSocket);
     
     // Join admin room for this organization
     const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
     const orgId = adminData?.organization?._id || 'demo';
-    newSocket.emit('join-admin', orgId);
     
-    // Also join the specific complaint room for direct user messages
-    newSocket.emit('join-complaint', complaintId);
+    // Wait for connection before joining rooms
+    newSocket.on('connect', () => {
+      console.log('🔌 Connected to Socket.IO server');
+      
+      // Join admin room for this organization
+      newSocket.emit('join-admin', orgId);
+      
+      // Also join the specific complaint room for direct user messages
+      newSocket.emit('join-complaint', complaintId);
+    });
+    
+    // Handle connection errors
+    newSocket.on('connect_error', (error) => {
+      console.error('🔌 Socket.IO connection error:', error);
+    });
+    
+    // Handle successful room joins
+    newSocket.on('admin-joined', (data) => {
+      if (data.success) {
+        console.log('✅ Admin joined room:', data.room);
+      } else {
+        console.error('❌ Failed to join admin room:', data.error);
+      }
+    });
+    
+    newSocket.on('complaint-joined', (data) => {
+      if (data.success) {
+        console.log('✅ Joined complaint room:', data.room);
+      } else {
+        console.error('❌ Failed to join complaint room:', data.error);
+      }
+    });
     
     // Listen for user messages
     newSocket.on('user-message', (data) => {
+      console.log('📨 Received user message:', data);
       setComplaint(prev => {
         if (!prev) return prev;
         if (data.complaintId !== prev._id) return prev;
@@ -120,6 +159,7 @@ const ReportDetails: React.FC = () => {
 
     // Listen for admin messages (from other admin sessions)
     newSocket.on('admin-message', (data) => {
+      console.log('📨 Received admin message:', data);
       setComplaint(prev => {
         if (!prev) return prev;
         if (data.complaintId !== prev._id) return prev;
@@ -136,7 +176,28 @@ const ReportDetails: React.FC = () => {
       }, 100);
     });
 
+    // Handle reconnection
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('✅ Reconnected to Socket.IO server after', attemptNumber, 'attempts');
+      // Rejoin rooms after reconnection
+      newSocket.emit('join-admin', orgId);
+      newSocket.emit('join-complaint', complaintId);
+    });
+
+    // Handle disconnection
+    newSocket.on('disconnect', (reason) => {
+      console.log('🔌 Disconnected from Socket.IO server:', reason);
+    });
+
+    // Test connection health
+    const pingInterval = setInterval(() => {
+      if (newSocket.connected) {
+        newSocket.emit('ping');
+      }
+    }, 30000); // Ping every 30 seconds
+
     return () => {
+      clearInterval(pingInterval);
       newSocket.disconnect();
       setSocket(null);
     };
@@ -517,17 +578,8 @@ const ReportDetails: React.FC = () => {
               </div>
             </div>
 
-            {/* Admin Response */}
-            <div className="bg-white rounded-lg shadow-sm p-2 sm:p-4 md:p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Response</h3>
-              <textarea
-                value={adminReply}
-                onChange={(e) => setAdminReply(e.target.value)}
-                placeholder="Type your response here..."
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Removed Admin Response section to avoid duplication and rely solely on conversation input */}
+
           </div>
 
           {/* Right Sidebar */}
