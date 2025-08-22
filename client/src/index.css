@@ -63,26 +63,26 @@ body {
   box-shadow: var(--glass-shadow);
 }
 
-/* Premium button styles */
+/* Premium button styles with better mobile responsiveness */
 .btn-primary {
-  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out;
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out text-sm sm:text-base;
 }
 
 .btn-secondary {
-  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out;
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 font-semibold py-3 px-6 sm:px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out text-sm sm:text-base;
 }
 
 .btn-glass {
-  @apply glass text-white font-semibold py-3 px-8 rounded-xl hover:bg-white/30 transform hover:scale-105 transition-all duration-300 ease-out;
+  @apply glass text-white font-semibold py-3 px-6 sm:px-8 rounded-xl hover:bg-white/30 transform hover:scale-105 transition-all duration-300 ease-out text-sm sm:text-base;
 }
 
-/* Premium card styles */
+/* Premium card styles with better mobile responsiveness */
 .card-premium {
-  @apply bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-300 ease-out;
+  @apply bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl hover:shadow-xl lg:hover:shadow-2xl border border-gray-200 dark:border-gray-700 transform hover:scale-[1.02] lg:hover:scale-105 transition-all duration-300 ease-out;
 }
 
 .card-glass {
-  @apply glass rounded-2xl transform hover:scale-105 transition-all duration-300 ease-out;
+  @apply glass rounded-xl lg:rounded-2xl transform hover:scale-[1.02] lg:hover:scale-105 transition-all duration-300 ease-out;
 }
 
 /* Gradient text */
@@ -138,25 +138,25 @@ body {
   animation: gradient 2s ease-in-out infinite;
 }
 
-/* Section spacing */
+/* Section spacing with better mobile responsiveness */
 .section-padding {
-  @apply py-16 md:py-24;
+  @apply py-12 sm:py-16 lg:py-20 xl:py-24;
 }
 
-/* Container styles */
+/* Container styles with improved mobile padding */
 .container-premium {
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
-/* Text styles */
+/* Text styles with better mobile responsiveness */
 .heading-primary {
-  @apply text-4xl md:text-6xl font-bold text-gradient mb-6;
+  @apply text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gradient mb-4 sm:mb-6;
 }
 
 .heading-secondary {
-  @apply text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6;
+  @apply text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6;
 }
 
 .text-body {
-  @apply text-lg text-gray-600 dark:text-gray-300 leading-relaxed;
+  @apply text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed;
 }
