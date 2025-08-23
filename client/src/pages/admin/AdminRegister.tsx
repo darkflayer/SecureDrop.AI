@@ -69,7 +69,7 @@ const AdminRegister: React.FC = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
         setSuccess('Registration successful! Redirecting to login...');
         setTimeout(() => {
           navigate('/admin/login');
