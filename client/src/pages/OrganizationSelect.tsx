@@ -91,9 +91,9 @@ const OrganizationSelect: React.FC = () => {
         {/* Professional Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"></div>
-          <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 dark:bg-blue-900 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-            <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-200 dark:bg-purple-900 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-20 left-20 w-64 h-64 bg-blue-200 dark:bg-blue-900 rounded-full filter blur-3xl opacity-40"></div>
+            <div className="absolute bottom-20 right-20 w-80 h-80 bg-purple-200 dark:bg-purple-900 rounded-full filter blur-3xl opacity-40"></div>
           </div>
         </div>
 
