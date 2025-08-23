@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FinalsLogo from '../components/FinalsLogo';
 import DarkModeToggle from '../components/DarkModeToggle';
 import { API_URL } from '../config';
 import { Link, useNavigate } from 'react-router-dom';
-import { MagnifyingGlassIcon, ArrowRightIcon, HomeIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ArrowRightIcon, HomeIcon, SparklesIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const OrganizationSelect: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +13,30 @@ const OrganizationSelect: React.FC = () => {
   const [customOrgCode, setCustomOrgCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  // Check backend status on component mount
+  useEffect(() => {
+    checkBackendStatus();
+  }, []);
+
+  const checkBackendStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/`, { 
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        setBackendStatus('online');
+      } else {
+        setBackendStatus('offline');
+      }
+    } catch (err) {
+      setBackendStatus('offline');
+    }
+  };
 
   // Fetch organizations as user types
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,23 +45,55 @@ const OrganizationSelect: React.FC = () => {
     setSelectedOrg(null);
     setCustomOrgCode('');
     setError('');
+    
     if (value.trim().length < 2) {
       setResults([]);
       return;
     }
+
+    // Check backend status before making the request
+    if (backendStatus === 'offline') {
+      setError('Backend server is not available. Please enter organization code manually.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/complaint/organizations?search=${encodeURIComponent(value)}`);
+      const res = await fetch(`${API_URL}/api/complaint/organizations?search=${encodeURIComponent(value)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+      
       if (res.ok) {
         const data = await res.json();
         setResults(data);
+        if (data.length === 0) {
+          setError('No organizations found with that name.');
+        }
       } else {
         setResults([]);
-        setError('No organizations found.');
+        if (res.status === 500) {
+          setError('Server error. Please try again later or enter organization code manually.');
+        } else {
+          setError('No organizations found.');
+        }
       }
     } catch (err) {
       setResults([]);
-      setError('Error searching organizations.');
+      console.error('Search error:', err);
+      
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('Search request timed out. Please try again.');
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check your connection or enter organization code manually.');
+        setBackendStatus('offline');
+      } else {
+        setError('Error searching organizations. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -57,6 +113,11 @@ const OrganizationSelect: React.FC = () => {
     if (orgCode.trim()) {
       navigate(`/submit/${orgCode.trim()}`);
     }
+  };
+
+  const handleRetryConnection = () => {
+    setBackendStatus('checking');
+    checkBackendStatus();
   };
 
   return (
@@ -85,6 +146,28 @@ const OrganizationSelect: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Backend Status Banner */}
+      {backendStatus === 'offline' && (
+        <div className="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800">
+          <div className="container-premium px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
+                <span className="text-sm text-orange-800 dark:text-orange-300">
+                  Backend server is not available. You can still submit feedback using organization codes.
+                </span>
+              </div>
+              <button
+                onClick={handleRetryConnection}
+                className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200 font-medium"
+              >
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative py-16 lg:py-24 overflow-hidden">
@@ -117,6 +200,12 @@ const OrganizationSelect: React.FC = () => {
                 <div className="card-premium p-6 lg:p-8">
                   <label htmlFor="orgSearch" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Organization Name
+                    {backendStatus === 'online' && (
+                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">● Connected</span>
+                    )}
+                    {backendStatus === 'offline' && (
+                      <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">● Offline</span>
+                    )}
                   </label>
                   <div className="relative">
                     <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -125,9 +214,10 @@ const OrganizationSelect: React.FC = () => {
                       type="text"
                       value={search}
                       onChange={handleSearchChange}
-                      placeholder="Type your organization name..."
+                      placeholder={backendStatus === 'offline' ? "Search unavailable - use organization code below" : "Type your organization name..."}
                       className="w-full pl-12 pr-4 py-4 border border-gray-300 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       autoComplete="off"
+                      disabled={backendStatus === 'offline'}
                     />
                   </div>
                   
@@ -160,7 +250,10 @@ const OrganizationSelect: React.FC = () => {
 
                   {/* Error State */}
                   {error && (
-                    <div className="mt-3 text-red-600 dark:text-red-400 text-sm">{error}</div>
+                    <div className="mt-3 text-red-600 dark:text-red-400 text-sm flex items-start">
+                      <ExclamationTriangleIcon className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                      {error}
+                    </div>
                   )}
                 </div>
 
@@ -297,6 +390,39 @@ const OrganizationSelect: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Troubleshooting Section */}
+      {backendStatus === 'offline' && (
+        <section className="section-padding bg-orange-50 dark:bg-orange-900/10">
+          <div className="container-premium px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <ExclamationTriangleIcon className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Backend Server Required
+              </h2>
+              <div className="text-body space-y-4 max-w-2xl mx-auto">
+                <p>
+                  The backend server needs to be running for full functionality. To start the server:
+                </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-left">
+                  <code className="text-sm text-gray-800 dark:text-gray-200">
+                    cd server<br />
+                    npm start
+                  </code>
+                </div>
+                <p>
+                  The server should be accessible at <strong>{API_URL}</strong>
+                </p>
+                <p>
+                  <strong>Note:</strong> You can still submit feedback using organization codes even when the search is unavailable.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Professional Footer */}
       <footer className="bg-gray-900 dark:bg-black py-8 lg:py-12">
