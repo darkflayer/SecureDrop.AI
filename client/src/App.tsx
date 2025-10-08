@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 import LandingPage from './pages/LandingPage';
 import OrganizationSelect from './pages/OrganizationSelect';
 import SubmitFeedback from './pages/SubmitFeedback';
@@ -17,29 +18,31 @@ import ResetPassword from './pages/admin/ResetPassword';
 
 function App() {
   return (
-    <Router>
-    <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/organizations" element={<OrganizationSelect />} />
-          <Route path="/submit/:orgCode" element={<SubmitFeedback />} />
-          <Route path="/track/:complaintId" element={<TrackComplaint />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/register" element={<AdminRegister />} />
-          <Route path="/admin/reset-password" element={<ResetPassword />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/reports" element={<AdminReports />} />
-          <Route path="/admin/analytics" element={<AdminAnalytics />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/help" element={<AdminHelp />} />
-          <Route path="/admin/report/:complaintId" element={<ReportDetails />} />
-          <Route path="/admin/ai-test" element={<AITest />} />
-        </Routes>
-    </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="App min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/organizations" element={<OrganizationSelect />} />
+            <Route path="/submit/:orgCode" element={<SubmitFeedback />} />
+            <Route path="/track/:complaintId" element={<TrackComplaint />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/register" element={<AdminRegister />} />
+            <Route path="/admin/reset-password" element={<ResetPassword />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/help" element={<AdminHelp />} />
+            <Route path="/admin/report/:complaintId" element={<ReportDetails />} />
+            <Route path="/admin/ai-test" element={<AITest />} />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 
