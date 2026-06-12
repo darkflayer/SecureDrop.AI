@@ -160,3 +160,74 @@ body {
 .text-body {
   @apply text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed;
 }
+
+/*
+ * Dark mode compatibility for pages that use light-only Tailwind classes.
+ * Body text inherits light colors in dark mode, so light surfaces must also switch.
+ * Must live in utilities layer to override Tailwind bg-* utilities.
+ */
+@layer utilities {
+  .dark .bg-white {
+    @apply bg-secondary-800;
+  }
+
+  .dark .bg-gray-50 {
+    @apply bg-secondary-900;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-secondary-800;
+  }
+
+  .dark .hover\:bg-gray-50:hover {
+    @apply bg-secondary-700;
+  }
+
+  .dark .hover\:bg-gray-100:hover {
+    @apply bg-secondary-700;
+  }
+
+  .dark .hover\:bg-gray-200:hover {
+    @apply bg-secondary-700;
+  }
+
+  .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    @apply divide-secondary-700;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-secondary-700;
+  }
+
+  .dark .text-black {
+    @apply text-white;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-500 {
+    @apply text-gray-400;
+  }
+
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark input[type="search"],
+  .dark input[type="tel"],
+  .dark input[type="url"],
+  .dark input[type="number"],
+  .dark textarea,
+  .dark select {
+    @apply bg-secondary-700 border-secondary-600 text-gray-100 placeholder-gray-400;
+  }
+}

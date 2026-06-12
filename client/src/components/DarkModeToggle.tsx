@@ -16,7 +16,7 @@ const DarkModeToggle: React.FC = () => {
       
       {/* Toggle Switch */}
       <div
-        className={`relative w-5 h-5 bg-white rounded-full shadow-lg transform transition-all duration-300 ease-in-out flex items-center justify-center ${
+        className={`relative w-5 h-5 bg-white dark:!bg-white rounded-full shadow-lg transform transition-all duration-300 ease-in-out flex items-center justify-center ${
           isDarkMode ? 'translate-x-3' : '-translate-x-3'
         }`}
       >
