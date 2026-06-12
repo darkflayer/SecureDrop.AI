@@ -14,6 +14,8 @@ import {
   Legend,
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import { adminTimeRangeBtn } from '../../components/admin/adminNavStyles';
 
 // Register ChartJS components
 ChartJS.register(
@@ -34,12 +36,12 @@ interface Complaint {
   message: string;
   category: string;
   status: string;
-  aiAnalysis: {
-    severity: number;
-    urgency: number;
-    riskScore: number;
-    suggestedActions?: string[];
-  };
+aiAnalysis: {
+  severity: string | number;
+  urgency: string | number;
+  riskScore: number;
+  suggestedActions?: string[];
+};
   createdAt: string;
 }
 
@@ -57,6 +59,18 @@ interface TimelineData {
   date: string;
   count: number;
 }
+
+const severityToScore = (severity: string | number | undefined): number => {
+  if (typeof severity === 'number') return severity;
+  const map: Record<string, number> = { Low: 2, Medium: 5, High: 8, Critical: 10 };
+  return map[severity || ''] ?? 0;
+};
+
+const urgencyToScore = (urgency: string | number | undefined): number => {
+  if (typeof urgency === 'number') return urgency;
+  const map: Record<string, number> = { Normal: 3, '24h': 7, Immediate: 10 };
+  return map[urgency || ''] ?? 0;
+};
 
 const AdminAnalytics: React.FC = () => {
   const navigate = useNavigate();
@@ -106,6 +120,7 @@ const AdminAnalytics: React.FC = () => {
     };
 
     fetchComplaints();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   // Process complaint data for visualizations
@@ -126,8 +141,7 @@ const AdminAnalytics: React.FC = () => {
     // Process severity data
     const severityMap = new Map<number, number>();
     complaints.forEach(complaint => {
-      const severity = complaint.aiAnalysis?.severity || 0;
-      const roundedSeverity = Math.round(severity);
+      const roundedSeverity = Math.round(severityToScore(complaint.aiAnalysis?.severity));
       severityMap.set(roundedSeverity, (severityMap.get(roundedSeverity) || 0) + 1);
     });
     
@@ -253,17 +267,16 @@ const AdminAnalytics: React.FC = () => {
       insights.push(`${topCategory} is the most common complaint category (${percentage}% of all complaints).`);
     }
     
-    // Get average severity
     const totalSeverity = complaints.reduce((sum, complaint) => {
-      return sum + (complaint.aiAnalysis?.severity || 0);
+      return sum + severityToScore(complaint.aiAnalysis?.severity);
     }, 0);
-    
+
     const avgSeverity = totalSeverity / totalComplaints;
     insights.push(`Average complaint severity is ${avgSeverity.toFixed(1)} out of 10.`);
-    
-    // Get high urgency complaints
-    const highUrgencyComplaints = complaints.filter(complaint => 
-      (complaint.aiAnalysis?.urgency || 0) >= 8
+
+    const highUrgencyComplaints = complaints.filter(complaint =>
+      urgencyToScore(complaint.aiAnalysis?.urgency) >= 7 ||
+      ['High', 'Critical'].includes(String(complaint.aiAnalysis?.severity))
     );
     
     if (highUrgencyComplaints.length > 0) {
@@ -342,12 +355,16 @@ const AdminAnalytics: React.FC = () => {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    localStorage.removeItem('adminName');
+    navigate('/admin/login');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-      </header>
+      <AdminPageHeader title="Analytics Dashboard" onLogout={handleLogout} />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -355,11 +372,11 @@ const AdminAnalytics: React.FC = () => {
         <div className="bg-white shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">AI-Powered Insights</h2>
-            <div className="bg-blue-50 p-4 rounded-md">
+            <div className="bg-blue-50 dark:bg-blue-900/25 p-4 rounded-md border border-blue-100 dark:border-blue-800">
               <ul className="space-y-2">
                 {aiInsights.map((insight, index) => (
-                  <li key={index} className="flex">
-                    <svg className="h-6 w-6 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={index} className="flex text-gray-800 dark:text-gray-200">
+                    <svg className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{insight}</span>
@@ -378,19 +395,19 @@ const AdminAnalytics: React.FC = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleTimeRangeChange('week')}
-                  className={`px-3 py-1 text-sm rounded-md ${selectedTimeRange === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={adminTimeRangeBtn(selectedTimeRange === 'week')}
                 >
                   Week
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('month')}
-                  className={`px-3 py-1 text-sm rounded-md ${selectedTimeRange === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={adminTimeRangeBtn(selectedTimeRange === 'month')}
                 >
                   Month
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('year')}
-                  className={`px-3 py-1 text-sm rounded-md ${selectedTimeRange === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={adminTimeRangeBtn(selectedTimeRange === 'year')}
                 >
                   Year
                 </button>
@@ -615,7 +632,7 @@ const AdminAnalytics: React.FC = () => {
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
                         {complaints.length > 0
-                          ? (complaints.reduce((sum, c) => sum + (c.aiAnalysis?.severity || 0), 0) / complaints.length).toFixed(1)
+                          ? (complaints.reduce((sum, c) => sum + severityToScore(c.aiAnalysis?.severity), 0) / complaints.length).toFixed(1)
                           : '0.0'}
                       </div>
                     </dd>

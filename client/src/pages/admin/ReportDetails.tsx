@@ -11,6 +11,8 @@ import {
   QuestionMarkCircleIcon,
   ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import { adminNavActive, adminNavInactive } from '../../components/admin/adminNavStyles';
 
 interface Complaint {
   _id: string;
@@ -53,7 +55,7 @@ const ReportDetails: React.FC = () => {
   const [adminReply, setAdminReply] = useState('');
   const [status, setStatus] = useState('');
   const [sending, setSending] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -313,38 +315,23 @@ const ReportDetails: React.FC = () => {
         
         <nav className="mt-8">
           <div className="px-4 space-y-2">
-            <Link
-              to="/admin/dashboard"
-              className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-            >
+            <Link to="/admin/dashboard" className={adminNavInactive}>
               <HomeIcon className="w-5 h-5 mr-3" />
               Dashboard
             </Link>
-            <Link
-              to="/admin/reports"
-              className="flex items-center px-4 py-2 text-gray-700 bg-gray-200 rounded-lg"
-            >
+            <Link to="/admin/reports" className={adminNavActive}>
               <DocumentTextIcon className="w-5 h-5 mr-3" />
               Reports
             </Link>
-            <Link
-              to="/admin/analytics"
-              className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-            >
+            <Link to="/admin/analytics" className={adminNavInactive}>
               <ChartBarIcon className="w-5 h-5 mr-3" />
               Analytics
             </Link>
-            <Link
-              to="/admin/settings"
-              className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-            >
+            <Link to="/admin/settings" className={adminNavInactive}>
               <CogIcon className="w-5 h-5 mr-3" />
               Settings
             </Link>
-            <Link
-              to="/admin/help"
-              className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-            >
+            <Link to="/admin/help" className={adminNavInactive}>
               <QuestionMarkCircleIcon className="w-5 h-5 mr-3" />
               Help
             </Link>
@@ -354,21 +341,7 @@ const ReportDetails: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Header */}
-        <header className="bg-white shadow-sm px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Report Details</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Welcome, {localStorage.getItem('adminName') || 'Admin'}</span>
-              <button
-                onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </header>
+        <AdminPageHeader title="Report Details" onLogout={handleLogout} />
 
         <div className="flex flex-col lg:flex-row">
           {/* Left Panel */}
@@ -401,8 +374,8 @@ const ReportDetails: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm p-2 sm:p-4 md:p-6 mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">User Submission</h3>
               <h4 className="font-medium text-gray-800 mb-2">{complaint.message.split('\n')[0]}</h4>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-800 whitespace-pre-wrap">{complaint.message}</p>
+              <div className="bg-gray-50 dark:bg-secondary-900 rounded-lg p-4 border border-gray-200 dark:border-secondary-700">
+                <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{complaint.message}</p>
               </div>
               {complaint.mediaUrl && (
                 <div className="mt-4">
@@ -434,30 +407,30 @@ const ReportDetails: React.FC = () => {
     <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis</h3>
     <div className="grid md:grid-cols-2 gap-4">
       <div>
-        <span className="text-sm text-gray-500">Severity</span>
-        <p className="font-medium">{complaint.aiAnalysis.severity}</p>
+        <span className="text-sm text-gray-500 dark:text-gray-400">Severity</span>
+        <p className="font-medium text-gray-900 dark:text-gray-100">{complaint.aiAnalysis.severity}</p>
       </div>
       <div>
-        <span className="text-sm text-gray-500">Urgency</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">Urgency</span>
         <p className="font-medium">{complaint.aiAnalysis.urgency}</p>
       </div>
       <div>
-        <span className="text-sm text-gray-500">Sentiment</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">Sentiment</span>
         <p className="font-medium">{complaint.aiAnalysis.sentiment}</p>
       </div>
       <div>
-        <span className="text-sm text-gray-500">AI Risk Score</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">AI Risk Score</span>
         <p className="font-medium">{complaint.aiAnalysis.riskScore}</p>
       </div>
       {complaint.aiAnalysis.emotionalTone && (
         <div>
-          <span className="text-sm text-gray-500">Emotional Tone</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Emotional Tone</span>
           <p className="font-medium">{complaint.aiAnalysis.emotionalTone}</p>
         </div>
       )}
       {complaint.aiAnalysis.safetyFlags && complaint.aiAnalysis.safetyFlags.length > 0 && (
         <div>
-          <span className="text-sm text-gray-500">Safety Flags</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Safety Flags</span>
           <ul className="list-disc ml-5 text-sm">
             {complaint.aiAnalysis.safetyFlags.map((flag, idx) => (
               <li key={idx}>{flag}</li>
@@ -467,20 +440,20 @@ const ReportDetails: React.FC = () => {
       )}
       {complaint.aiSuggestions?.priorityLevel && (
         <div>
-          <span className="text-sm text-gray-500">Priority Level</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Priority Level</span>
           <p className="font-medium">{complaint.aiSuggestions.priorityLevel}</p>
         </div>
       )}
       {typeof complaint.aiSuggestions?.escalationNeeded === 'boolean' && (
         <div>
-          <span className="text-sm text-gray-500">Escalation Needed</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Escalation Needed</span>
           <p className="font-medium">{complaint.aiSuggestions.escalationNeeded ? 'Yes' : 'No'}</p>
         </div>
       )}
     </div>
     {complaint.aiSuggestions?.suggestedActions && complaint.aiSuggestions.suggestedActions.length > 0 && (
       <div className="mt-4">
-        <span className="text-sm text-gray-500">Suggested Actions</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">Suggested Actions</span>
         <ul className="list-disc ml-5 text-sm">
           {complaint.aiSuggestions.suggestedActions.map((action, idx) => (
             <li key={idx}>{action}</li>

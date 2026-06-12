@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
 import { FaExclamationTriangle, FaCheckCircle, FaSpinner, FaChartBar, FaListAlt } from 'react-icons/fa/';
-
-console.log(FaCheckCircle); // If this logs undefined, the import is wrong.
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 interface AIAnalysis {
   severity: 'Low' | 'Medium' | 'High' | 'Critical' | string;
@@ -30,6 +30,7 @@ interface ReportsData {
 }
 
 export default function AdminReports() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reports, setReports] = useState<ReportsData | null>(null);
@@ -90,12 +91,21 @@ export default function AdminReports() {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    localStorage.removeItem('adminName');
+    navigate('/admin/login');
+  };
+
   return (
-    <div className='p-8'>
-      <div className="mb-8">
-        <h1 className='text-2xl font-bold mb-2'>Reports & Analytics</h1>
-        <p className="text-gray-600">Analytics and insights for {orgInfo.name} ({orgInfo.orgCode})</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <AdminPageHeader
+        title="Reports & Analytics"
+        subtitle={`Analytics and insights for ${orgInfo.name} (${orgInfo.orgCode})`}
+        onLogout={handleLogout}
+      />
+      <div className="p-8">
 
       {reports ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -206,6 +216,7 @@ export default function AdminReports() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

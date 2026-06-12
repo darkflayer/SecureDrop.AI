@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CogIcon, KeyIcon, UserIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { KeyIcon, UserIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { API_URL } from '../../config';
 import axios from 'axios';
 

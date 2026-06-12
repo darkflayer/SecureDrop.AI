@@ -13,13 +13,15 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import FinalsLogo from '../../components/FinalsLogo';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import { adminNavActive, adminNavInactive } from '../../components/admin/adminNavStyles';
 
 const AITest: React.FC = () => {
   const navigate = useNavigate();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [logs, setLogs] = useState<string[]>([]);
-  const [testMessage, setTestMessage] = useState('');
+  // const [testMessage, setTestMessage] = useState('');
   const [aiTestText, setAiTestText] = useState('');
   const [aiResult, setAiResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
@@ -245,21 +247,7 @@ const AITest: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Header */}
-        <header className="bg-white shadow-sm px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">AI & Socket.IO Test</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Welcome, {localStorage.getItem('adminName') || 'Admin'}</span>
-              <button
-                onClick={() => navigate('/admin/dashboard')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-          </div>
-        </header>
+        <AdminPageHeader title="AI & Socket.IO Test" onLogout={() => navigate('/admin/dashboard')} />
 
         <div className="p-4 sm:p-6">
           {/* Connection Status */}

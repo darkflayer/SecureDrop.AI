@@ -28,7 +28,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
 // Test AI endpoint (no auth required for testing)
-router.post("/test-ai", testAIAnalysis);
+router.post("/ai-test", testAIAnalysis);
 
 // Protected routes (require authentication)
 router.get("/complaints", auth, getComplaints);
