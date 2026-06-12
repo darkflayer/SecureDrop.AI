@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import FinalsLogo from '../../components/FinalsLogo';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
-import { adminNavActive, adminNavInactive } from '../../components/admin/adminNavStyles';
+// import { adminNavActive, adminNavInactive } from '../../components/admin/adminNavStyles';
 
 const AITest: React.FC = () => {
   const navigate = useNavigate();
